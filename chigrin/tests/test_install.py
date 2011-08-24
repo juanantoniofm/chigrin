@@ -1,25 +1,24 @@
 from chigrin import repository
 from chigrin import artifacts
-from chigrin.installer import Installer, InstallErrors
+from chigrin import install
 
 from chigrin.tests import utils
 from nose.tools import assert_equals, assert_true
 
-REPOSITORIES = [1, 2, 3] # anything with a sane __eq__ suffices.
+PACKAGE_SOURCES = [1, 2, 3] # anything with a sane __eq__ suffices.
 HOST = 'host.com'
 
 installer = None # initialized in `setup_module'.
-package_source = None # same as above
 
 def setup_module():
     global installer
 
-    installer = Installer(*REPOSITORIES)
+    installer = install.Installer(*PACKAGE_SOURCES)
     
 @utils.with_mockery
 def test_installer_delegates_on_artifact_and_succeeds(mockery):
     artifact = mockery.CreateMock(artifacts.Artifact)
-    artifact.install_on(HOST, REPOSITORIES[0])
+    artifact.install_on(HOST, PACKAGE_SOURCES[0])
     mockery.ReplayAll()
 
     assert_true(installer.on_host(HOST, artifact).succeeded())
@@ -28,9 +27,9 @@ def test_installer_delegates_on_artifact_and_succeeds(mockery):
 def test_installer_tries_all_repos_in_order(mockery):
     artifact = mockery.CreateMock(artifacts.Artifact)
 
-    artifact.install_on(HOST, REPOSITORIES[0]).AndRaise(repository.UnknownPackageError(None))
-    artifact.install_on(HOST, REPOSITORIES[1]).AndRaise(repository.UnknownOSError(None))
-    artifact.install_on(HOST, REPOSITORIES[2])
+    artifact.install_on(HOST, PACKAGE_SOURCES[0]).AndRaise(repository.UnknownPackageError(None))
+    artifact.install_on(HOST, PACKAGE_SOURCES[1]).AndRaise(repository.UnknownOSError(None))
+    artifact.install_on(HOST, PACKAGE_SOURCES[2])
 
     mockery.ReplayAll()
 
@@ -40,7 +39,7 @@ def test_installer_tries_all_repos_in_order(mockery):
 def test_installer_should_collect_all_errors(mockery):
     artifact = mockery.CreateMock(artifacts.Artifact)
 
-    for repo in REPOSITORIES:
+    for repo in PACKAGE_SOURCES:
         artifact.install_on(HOST, repo).AndRaise(repository.UnknownPackageError(None))
 
     mockery.ReplayAll()

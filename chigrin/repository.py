@@ -1,43 +1,38 @@
 import json
 import os as _os
+from chigrin import core
 
-class ChigrinError(Exception):
-    """Base class for all errors raised in chigrin."""
-
-    def __init__(self, cause):
-        super(ChigrinError, self).__init__(cause)
-
-class RepositoryError(ChigrinError):
+class RepositoryError(core.ChigrinError):
     """Base class for all repository errors."""
 
-    def __init__(self, cause):
-        super(RepositoryError, self).__init__(cause)
+    def __init__(self, message, cause=None):
+        super(RepositoryError, self).__init__(message, cause)
 
 class UnknownOSError(RepositoryError):
     """Error raised when a repository is queried for an unknown
     operating system."""
 
-    def __init__(self, cause):
-        super(UnknownOSError, self).__init__(cause)
+    def __init__(self, message, cause=None):
+        super(UnknownOSError, self).__init__(message, cause)
 
 class UnknownPackageError(RepositoryError):
     """Error raised when an operating system is queried for a
     non-existant package."""
 
-    def __init__(self, cause):
-        super(UnknownPackageError, self).__init__(cause)
+    def __init__(self, message, cause=None):
+        super(UnknownPackageError, self).__init__(message, cause)
 
 class MetadataNotFoundError(RepositoryError):
     """Error raised when no metadata found for a package."""
 
-    def __init__(self, cause):
-        super(MetadataNotFoundError, self).__init__(cause)
+    def __init__(self, message, cause=None):
+        super(MetadataNotFoundError, self).__init__(message, cause)
 
 class CorruptedMetadataError(RepositoryError):
     """Error raised when a package's metadata is corrupted."""
 
-    def __init__(self, cause):
-        super(CorruptedMetadataError, self).__init__(cause)
+    def __init__(self, message, cause=None):
+        super(CorruptedMetadataError, self).__init__(message, cause)
     
 class Repository(object):
     """A repository maintains information about software packages.
@@ -118,7 +113,8 @@ class LocalRepository(Repository):
     def all_packages(self, os):
         os_path = _os.path.join(self._root_path, os)
         if not _os.path.exists(os_path):
-            raise UnknownOSError(None)
+            raise UnknownOSError(
+                "This repository doesn't support the OS '{0}'".format(os))
         else:
             return _os.listdir(os_path)
 
@@ -126,13 +122,15 @@ class LocalRepository(Repository):
         os_path = _os.path.join(self._root_path, os)
 
         if not _os.path.exists(os_path):
-            raise UnknownOSError(None)
+            raise UnknownOSError(
+                "This repository doesn't support the OS '{0}'".format(os))
 
         package_path = _os.path.join(os_path, package)
 
         if not _os.path.exists(package_path):
             raise UnknownPackageError(
-                "package {0}:{1} doesn't exist".format(os, package))
+                "package {0}:{1} doesn't exist in the repository".format(
+                    os, package))
 
         metadata = _os.path.join(package_path, '.metadata')
 
@@ -148,11 +146,10 @@ class LocalRepository(Repository):
     def _deserialize(self, data, os, package, kwargs):
         try:
             return json.load(data)
-        except ValueError:
-            # TODO: wrap original exception
+        except ValueError as e:
             raise CorruptedMetadataError(
                 'Corrupted .metadata found for {0}:{1}:{2}'.format(
-                    os, package, kwargs))
+                    os, package, kwargs), e)
 
 
     def _filter_matching_versions(self, versions, query):

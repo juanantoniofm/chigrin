@@ -1,4 +1,5 @@
 from chigrin import repository
+from chigrin import core
 
 class InstallErrors(object):
     def __init__(self, errors, success=False):
@@ -22,7 +23,7 @@ class Installer(object):
             try:
                 artifact.install_on(host, repo)
                 return InstallErrors(errors, success=True)
-            except repository.ChigrinError as e:
+            except core.ChigrinError as e:
                 errors.append((repo, e))
 
         return InstallErrors(errors)
