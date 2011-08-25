@@ -1,0 +1,24 @@
+Chigrin - A software installation and deployment management tool
+
+Introduction
+------------
+
+Chigrin is a tool to simplify the installation and deployment of
+sofware in remote servers.
+
+Right now, it is in an early stage of development, so there is not
+much to look at.
+
+Software Requirements
+---------------------
+
+We are using the following libraries and runtime versions:
+  * Python 2.7.2
+  * Python-nose 1.0.0 <http://code.google.com/p/python-nose/>
+  * Pymox 0.5.3 <http://code.google.com/p/pymox/>
+  * Fabric 1.2.1 <http://docs.fabfile.org/en/1.2.1>
+
+Chigrin will probably work with older versions of those packages, but
+we've not tried it yet.
+
+Happy hacking!

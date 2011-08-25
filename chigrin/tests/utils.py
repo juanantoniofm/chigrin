@@ -3,6 +3,7 @@ import tempfile
 import json
 import mox
 from functools import wraps
+from nose.tools import assert_true
 
 TEST_PACKAGES = [
     {'os': 'freebsd',
@@ -69,3 +70,7 @@ def with_mockery(test_fn):
         mockery.VerifyAll()
 
     return wrapper
+
+def assert_file_exists(filename):
+    assert_true(os.path.exists(filename),
+                "File {0} doesn't exist".format(filename))
