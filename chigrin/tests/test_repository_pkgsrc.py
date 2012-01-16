@@ -21,7 +21,11 @@ def cleanup_work_dir():
     assertions fail when the package source is not able to downloaded
     all the files correcty."""
 
-    os.remove('/tmp/robots.txt')
+    try:
+        os.remove('/tmp/robots.txt')
+    except OSError as e:
+        if e.errno != 2: # File not found
+            raise
 
 @with_setup(cleanup_work_dir)
 def test_repository_package_source_should_download_files():
