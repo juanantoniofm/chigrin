@@ -21,4 +21,17 @@ We are using the following libraries and runtime versions:
 Chigrin will probably work with older versions of those packages, but
 we've not tried it yet.
 
+Usage and Installation
+----------------------
+
+The Makefile in the root directory contains a couple of useful
+targets:
+
+  * all, cleans, analyzes and executes the tests.
+  * check, analyzes the code with pychecker.
+  * metrics, extracts some useful code metrics.
+  * test, executes the tests and generates code coverage statistics
+
+Right now, there are no packaging or installation targets.
+
 Happy hacking!
