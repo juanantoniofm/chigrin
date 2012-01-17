@@ -1,20 +1,12 @@
+import collections
 import os
+
 from chigrin import repository
 from chigrin import core
 from chigrin import artifacts
 from chigrin import commands
 
-# TODO: rename this class to InstallResult
-class InstallErrors(object):
-    def __init__(self, errors, success=False):
-        self.errors = errors
-        self.success = success
-
-    def succeeded(self):
-        return self.success
-
-    def failed(self):
-        return not self.succeeded()
+InstallResult = collections.namedtuple('InstallResult', ['succeeded', 'failed', 'errors'])
 
 class Installer(object):
     def __init__(self, *repositories):
@@ -26,13 +18,13 @@ class Installer(object):
         for repo in self.repositories:
             try:
                 artifact.install_on(host, repo)
-                return InstallErrors(errors, success=True)
+                return InstallResult(True, False, errors)
             except artifacts.ArtifactError:
                 raise
             except core.ChigrinError as e:
                 errors.append((repo, e))
 
-        return InstallErrors(errors)
+        return InstallResult(False, True, errors)
 
 class PackageSource(object):
     def install(self, host, attributes):

@@ -27,7 +27,7 @@ def test_installer_delegates_on_artifact_and_succeeds(mockery):
     artifact.install_on(HOST, PACKAGE_SOURCES[0])
     mockery.ReplayAll()
 
-    assert_true(installer.on_host(HOST, artifact).succeeded())
+    assert_true(installer.on_host(HOST, artifact).succeeded)
 
 @utils.with_mockery
 def test_installer_tries_all_repos_in_order(mockery):
@@ -45,7 +45,7 @@ def test_installer_tries_all_repos_in_order(mockery):
 
     mockery.ReplayAll()
 
-    assert_true(installer.on_host(HOST, artifact).succeeded())
+    assert_true(installer.on_host(HOST, artifact).succeeded)
     
 @utils.with_mockery
 def test_installer_should_collect_all_errors(mockery):
@@ -63,7 +63,7 @@ def test_installer_should_collect_all_errors(mockery):
 
     result = installer.on_host(HOST, artifact)
 
-    assert_true(result.failed())
+    assert_true(result.failed)
     assert_equals(3, len(result.errors))
 
     
