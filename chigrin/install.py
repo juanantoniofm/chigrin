@@ -38,5 +38,5 @@ class RepositoryPackageSource(PackageSource):
     def install(self, host, attributes):
         for p in self.repository.package(**attributes):
             for uri in p['resources']:
-                commands.fetch(uri, self.work_dir)
+                commands.fetch(uri, self.work_dir, host=host)
 

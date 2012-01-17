@@ -17,8 +17,23 @@ We are using the following libraries and runtime versions:
   * Python-nose 1.0.0 <http://code.google.com/p/python-nose/>
   * Pymox 0.5.3 <http://code.google.com/p/pymox/>
   * Fabric 1.2.1 <http://docs.fabfile.org/en/1.2.1>
+  * PyChecker 0.8.19 <http://pychecker.sourceforge.net/>
+  * Coverage.py 3.5.1 <http://nedbatchelder.com/code/coverage/>
 
 Chigrin will probably work with older versions of those packages, but
 we've not tried it yet.
+
+Usage and Installation
+----------------------
+
+The Makefile in the root directory contains a couple of useful
+targets:
+
+  * all, cleans, analyzes and executes the tests.
+  * check, analyzes the code with pychecker.
+  * metrics, extracts some useful code metrics.
+  * test, executes the tests and generates code coverage statistics
+
+Right now, there are no packaging or installation targets.
 
 Happy hacking!

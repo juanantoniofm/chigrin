@@ -22,8 +22,8 @@ def test_querying_packages_from_unknown_os_raises_error():
     repository.all_packages(os='unknown')
 
 def test_querying_packages_from_known_os_returns_all_available_packages():
-    expected = [pkg['name'] for pkg in utils.TEST_PACKAGES]
-    assert_equal(expected, repository.all_packages(os='freebsd'))
+    expected = set(pkg['name'] for pkg in utils.TEST_PACKAGES)
+    assert_equal(expected, set(repository.all_packages(os='freebsd')))
 
 @raises(UnknownOSError)
 def test_querying_in_a_unknown_os_raises_error():
