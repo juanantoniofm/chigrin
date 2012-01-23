@@ -1,59 +1,113 @@
-import os
-
+import chigrin.core
 from fabric.api import run, local
 from fabric.context_managers import settings
-from contextlib import contextmanager
+import functools
+import os
+import socket
+import StringIO
+
 
 class OS(object):
+    def __init__(self, executor):
+        self._execute = executor
+
+    def _cmd(self, fmt, *args):
+        return self._execute(fmt.format(*args))
+
+    def _do_fetch(self, cmd_template, uri, destination):
+        filename = os.path.basename(uri)
+        out_file = os.path.join(destination, filename)
+
+        return self._cmd(cmd_template, out_file, uri)
+
     def fetch(self, uri, destination):
         return NotImplemented
 
-def executable(cls):
-    def cons(executor):
-        instance = cls()
-        instance.execute = executor
-        return instance
+    def unzip(self, zip_file, target_dir, flags=''):
+        return self._cmd('unzip {0} {1} -d {2}', flags, zip_file, target_dir)
 
-    return cons
+    def mv(self, source, destination):
+        return self._cmd('mv {0} {1}', source, destination)
 
-@executable
+    def mkdir(self, dirname):
+        return self._cmd('mkdir {0}', dirname)
+
+    def touch(self, filename, contents=None):
+        if contents:
+            return fabric.operations.put(StringIO(contents), filename)
+        else:
+            return self._cmd('touch {0}', filename)            
+
 class FreeBSD(OS):
     def fetch(self, uri, destination):
-        self.execute('fetch -o {0} {1}'.format(
-                os.path.join(destination, os.path.basename(uri)), uri))
+        return self._do_fetch('fetch -o {0} {1}', uri, destination)
 
-@executable
+    @staticmethod
+    def installed_on(host, executor):
+        return executor('uname -a').find('FreeBSD') != -1
+
 class Ubuntu(OS):
     def fetch(self, uri, destination):
-        self.execute('wget -O {0} {1}'.format(
-                os.path.join(destination, os.path.basename(uri)), uri))
+        return self._do_fetch('wget -O {0} {1}', uri, destination)
+
+    @staticmethod
+    def installed_on(host, executor):
+        return executor('uname -a').find('Ubuntu') != -1
 
 def is_localhost(host):
-    return host == 'localhost' or host == '127.0.0.1'
+    return socket.gethostbyname(host) == '127.0.0.1'
 
-def detect_os(host):
-    executor = local if is_localhost(host) else run
+local_executor = functools.partial(local, capture=True)
 
-    uname = executor('uname -a')
+def executor_factory(host):
+    return local_executor if host == None or is_localhost(host) else run
 
-    if uname.find('Ubuntu') != -1:
-        return Ubuntu(executor)
-    elif uname.contains('FreeBSD') != -1:
-        return FreeBSD(executor)
-    else:
-        raise ValueError # TODO: pick a more specific exception
+def available_oses():
+    found = []
+    pending = [OS]
 
-@contextmanager
-def machine(host):
-    if is_localhost(host):
-        yield
-    else:
-        with settings(host_string=host):
-            yield
+    while pending:
+        cls = pending.pop()
+        for os in cls.__subclasses__():
+            if os not in found:
+                found.append(os)
+            pending.append(os)
+
+    return found
+
+class UnsupportedOSError(chigrin.core.ChigrinError):
+    pass
+
+def detect_os(host, executor_factory=executor_factory, available_oses=available_oses):
+    executor = executor_factory(host)
+
+    for os in available_oses():
+        if os.installed_on(host, executor):
+            return os(executor)
+
+    raise UnsupportedOSError(
+        'No supported operating system found at {0}'.format(host))
 
 def execute(host, fn):
-    with machine(host):
-        fn(detect_os(host))
-    
-def fetch(uri, destination, host):
-    execute(host, lambda os: os.fetch(uri, destination))
+    env = { 'warn_only': True }
+
+    if host:
+        env['host_string'] = host
+
+    with settings(**env):
+        return fn(detect_os(host))
+
+def fetch(uri, destination, host=None):
+    return execute(host, lambda os: os.fetch(uri, destination))
+
+def unzip(zip_file, target_dir, flags='', host=None):
+    return execute(host, lambda os: os.unzip(zip_file, target_dir, flags))
+
+def mv(source, destination, host=None):
+    return execute(host, lambda os: os.mv(source, destination))
+
+def mkdir(dirname, host=None):
+    return execute(host, lambda os: os.mkdir(dirname))
+
+def touch(filename, contents=None, host=None):
+    return execute(host, lambda os: os.touch(filename, contents))
