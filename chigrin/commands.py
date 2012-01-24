@@ -4,8 +4,6 @@ from fabric.context_managers import settings
 import functools
 import os
 import socket
-import StringIO
-
 
 class OS(object):
     def __init__(self, executor):
@@ -32,18 +30,15 @@ class OS(object):
     def mkdir(self, dirname):
         return self._cmd('mkdir {0}', dirname)
 
-    def touch(self, filename, contents=None):
-        if contents:
-            return fabric.operations.put(StringIO(contents), filename)
-        else:
-            return self._cmd('touch {0}', filename)            
+    def touch(self, filename):
+        return self._cmd('touch {0}', filename)            
 
 class FreeBSD(OS):
     def fetch(self, uri, destination):
         return self._do_fetch('fetch -o {0} {1}', uri, destination)
 
     @staticmethod
-    def installed_on(host, executor):
+    def installed_on(_, executor):
         return executor('uname -a').find('FreeBSD') != -1
 
 class Ubuntu(OS):
@@ -51,7 +46,7 @@ class Ubuntu(OS):
         return self._do_fetch('wget -O {0} {1}', uri, destination)
 
     @staticmethod
-    def installed_on(host, executor):
+    def installed_on(_, executor):
         return executor('uname -a').find('Ubuntu') != -1
 
 def is_localhost(host):
@@ -109,5 +104,5 @@ def mv(source, destination, host=None):
 def mkdir(dirname, host=None):
     return execute(host, lambda os: os.mkdir(dirname))
 
-def touch(filename, contents=None, host=None):
-    return execute(host, lambda os: os.touch(filename, contents))
+def touch(filename, host=None):
+    return execute(host, lambda os: os.touch(filename))
