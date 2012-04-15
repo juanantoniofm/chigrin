@@ -6,4 +6,4 @@ setup(name='chigrin',
       author='Adolfo Perez Alvarez',
       author_email='adolfo.pa@gmail.com',
       url='http://github.com/adolfopa/chigrin',
-      py_modules=['chigrin', 'chigrin.repository', 'chigrin.installer', 'chigrin.tests'])
+      py_modules=['chigrin', 'chigrin.core', 'chigrin.tests'])
